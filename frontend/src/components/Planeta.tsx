@@ -106,6 +106,7 @@ export const Planeta = ({ orbitaDados, constantes }: { orbitaDados: OrbitaDados;
             <meshStandardMaterial color="blue" />
          </mesh>
 
+         {/* @ts-ignore */}
          <line ref={trailRef} geometry={trailGeometry}>
             <lineBasicMaterial
                vertexColors={false}
