@@ -1,9 +1,14 @@
-import { useEffect, useRef } from "react"
+import { useEffect, useLayoutEffect, useRef } from "react"
+import imgUrl from "../assets/AOS.png"
 import { useOrbita } from "../hooks/useOrbita"
 
 export const Capa = () => {
    const { orbitaDados, constantes } = useOrbita()
    const capaRef = useRef<HTMLDivElement>(null)
+
+   useLayoutEffect(() => {
+      if (capaRef.current) capaRef.current.style.backgroundImage = `url("${imgUrl}")`
+   }, [capaRef])
 
    useEffect(() => {
       if (orbitaDados && constantes) {
@@ -12,7 +17,7 @@ export const Capa = () => {
             capaRef.current.classList.add("fade-out")
          }
       }
-   }, [orbitaDados])
+   }, [orbitaDados, constantes])
 
    return (
       <>
