@@ -1,8 +1,12 @@
-export const Estrela = () => {
+import type { BuscarEstrela, Constantes } from "../api/types/Api"
+
+export const Estrela = ({ dadosEstrela, constantes }: { dadosEstrela: BuscarEstrela, constantes: Constantes }) => {
+   const { cor, raio } = dadosEstrela
+
    return (
       <mesh>
-         <sphereGeometry args={[0.1, 32, 32]} />
-         <meshStandardMaterial emissive="yellow" emissiveIntensity={1} />
+         <sphereGeometry args={[raio / constantes.AU, 32, 32]} />
+         <meshStandardMaterial emissive={cor} emissiveIntensity={1} />
       </mesh>
    )
 }

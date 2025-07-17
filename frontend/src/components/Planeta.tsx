@@ -1,41 +1,65 @@
 import { useFrame } from "@react-three/fiber"
-import { useMemo, useRef } from "react"
+import { useEffect, useMemo, useRef } from "react"
 import * as THREE from "three"
-import type { Constantes, OrbitaDados } from "../api/types/Api"
+import type { BuscarEstrela, BuscarPlaneta, Constantes } from "../api/types/Api"
 import { OrbitaMarcadores } from "./OrbitaMarcadores"
 import { OrbitaPlano } from "./OrbitaPlano"
 
 const TIME_SCALE = 5000000
-const TRAIL_LENGTH = 400
+const TRAIL_LENGTH = 200
 const DAY = 24 * 60 * 60
 
-export const Planeta = ({ orbitaDados, constantes }: { orbitaDados: OrbitaDados; constantes: Constantes }) => {
-   const { AU, G, M_sun } = constantes
+interface PlanetaProps {
+   dadosPlaneta: BuscarPlaneta
+   dadosEstrela: BuscarEstrela
+   constantes: Constantes
+}
 
+export const Planeta = ({ dadosPlaneta, dadosEstrela, constantes }: PlanetaProps) => {
    const meshRef = useRef<THREE.Mesh>(null)
    const trailRef = useRef<THREE.Line>(null)
    const trailPoints = useRef<THREE.Vector3[]>([])
 
    const pos = useRef(
       new THREE.Vector3( // AU -> m
-         orbitaDados.x_AU * AU,
-         orbitaDados.y_AU * AU,
-         orbitaDados.z_AU * AU
+         dadosPlaneta.x_AU * constantes.AU,
+         dadosPlaneta.y_AU * constantes.AU,
+         dadosPlaneta.z_AU * constantes.AU
       )
    )
 
    const vel = useRef(
       new THREE.Vector3( // AU/dia -> m/s
-         orbitaDados.vx_AUperDay * AU / DAY,
-         orbitaDados.vy_AUperDay * AU / DAY,
-         orbitaDados.vz_AUperDay * AU / DAY
+         dadosPlaneta.vx_AUperDay * constantes.AU / DAY,
+         dadosPlaneta.vy_AUperDay * constantes.AU / DAY,
+         dadosPlaneta.vz_AUperDay * constantes.AU / DAY
       )
    )
+
+   useEffect(() => {
+      pos.current = new THREE.Vector3(
+         dadosPlaneta.x_AU * constantes.AU,
+         dadosPlaneta.y_AU * constantes.AU,
+         dadosPlaneta.z_AU * constantes.AU
+      )
+      vel.current = new THREE.Vector3(
+         dadosPlaneta.vx_AUperDay * constantes.AU / DAY,
+         dadosPlaneta.vy_AUperDay * constantes.AU / DAY,
+         dadosPlaneta.vz_AUperDay * constantes.AU / DAY
+      )
+      trailPoints.current = []
+      meshRef.current?.position.set(
+         pos.current.x / constantes.AU,
+         pos.current.y / constantes.AU,
+         pos.current.z / constantes.AU
+      )
+      trailRef.current?.geometry.setDrawRange(0, 0)
+   }, [dadosPlaneta, dadosEstrela])
 
    const rungeKutta = (pos: THREE.Vector3, vel: THREE.Vector3, dt: number) => {
       const acc = (r: THREE.Vector3) => {
          const rLen = r.length()
-         return r.clone().multiplyScalar(-G * M_sun / (rLen * rLen * rLen))
+         return r.clone().multiplyScalar(-constantes.G * dadosEstrela?.massa / (rLen * rLen * rLen))
       }
 
       const k1v = acc(pos).multiplyScalar(dt)
@@ -72,13 +96,13 @@ export const Planeta = ({ orbitaDados, constantes }: { orbitaDados: OrbitaDados;
 
       // Atualiza posição do planeta
       meshRef?.current?.position.set(
-         novaPos.x / AU,
-         novaPos.y / AU,
-         novaPos.z / AU
+         novaPos.x / constantes.AU,
+         novaPos.y / constantes.AU,
+         novaPos.z / constantes.AU
       )
 
       // Adiciona ponto ao trail (em km)
-      trailPoints.current.push(novaPos.clone().divideScalar(AU))
+      trailPoints.current.push(novaPos.clone().divideScalar(constantes.AU))
       if (trailPoints.current.length > TRAIL_LENGTH) {
          trailPoints.current.shift()
       }
@@ -98,12 +122,12 @@ export const Planeta = ({ orbitaDados, constantes }: { orbitaDados: OrbitaDados;
 
    return (
       <>
-         <OrbitaMarcadores pos={pos.current} vel={vel.current} constants={constantes} />
-         <OrbitaPlano pos={pos.current} vel={vel.current} />
+         <OrbitaMarcadores pos={pos.current} vel={vel.current} dadosEstrela={dadosEstrela} constantes={constantes} />
+         {/* <OrbitaPlano pos={pos.current} vel={vel.current} /> */}
 
          <mesh ref={meshRef}>
-            <sphereGeometry args={[0.01, 32, 32]} />
-            <meshStandardMaterial color="blue" />
+            <sphereGeometry args={[10 * dadosPlaneta.raioPlaneta / constantes.AU, 32, 32]} />
+            <meshStandardMaterial color="white" />
          </mesh>
 
          {/* @ts-ignore */}
