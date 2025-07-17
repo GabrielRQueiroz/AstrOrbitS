@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef } from "react"
 import * as THREE from "three"
 import type { BuscarEstrela, BuscarPlaneta, Constantes } from "../api/types/Api"
 import { OrbitaMarcadores } from "./OrbitaMarcadores"
-import { OrbitaPlano } from "./OrbitaPlano"
+// import { OrbitaPlano } from "./OrbitaPlano"
 
 const TIME_SCALE = 5000000
 const TRAIL_LENGTH = 200

@@ -31,9 +31,9 @@ export const OrbitaMarcadores = ({ pos, vel, dadosEstrela, constantes }: OrbitaM
       return { e, a, rPeri, rAfelio, eVec }
    }, [dadosEstrela, pos, vel, constantes])
 
-   const periDir = eVec.clone().normalize()
-   const posPeri = periDir.clone().multiplyScalar(rPeri / constantes.AU)
-   const posAfelio = periDir.clone().multiplyScalar(-rAfelio / constantes.AU)
+   // const periDir = eVec.clone().normalize()
+   // const posPeri = periDir.clone().multiplyScalar(rPeri / constantes.AU)
+   // const posAfelio = periDir.clone().multiplyScalar(-rAfelio / constantes.AU)
 
    return (
       <>
