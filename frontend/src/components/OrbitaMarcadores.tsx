@@ -11,7 +11,7 @@ interface OrbitaMarcadoresProps {
 }
 
 export const OrbitaMarcadores = ({ pos, vel, dadosEstrela, constantes }: OrbitaMarcadoresProps) => {
-   const { e, a, rPeri, rAfelio, eVec } = useMemo(() => {
+   const { e, a, rPeri, rAfelio } = useMemo(() => {
       const r = pos.length()
       const v = vel.length()
       const GM = constantes.G * dadosEstrela.massa
