@@ -1,22 +1,8 @@
-from astropy import units as u
-from astropy.constants import G, M_earth, M_sun, au
+from astropy.constants import G, M_sun, R_sun, au
 from astroquery.jplhorizons import Horizons
-from fastapi import FastAPI
+from constants import ESTRELAS, PLANETAS
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-
-NAIF_IDS = {
-    "sun": "10",
-    "mercury": "199",
-    "venus": "299",
-    "earth": "399",
-    "moon": "301",
-    "mars": "499",
-    "jupiter": "599",
-    "saturn": "699",
-    "uranus": "799",
-    "neptune": "899",
-    "pluto": "999",
-}
 
 app = FastAPI()
 
@@ -30,12 +16,32 @@ app.add_middleware(
 )
 
 
-@app.get("/api/orbit-data")
-def get_orbit_data(body: str = "earth", epoch: float = 2451545.0):
-    body_id = NAIF_IDS[body.lower()]
-    obj = Horizons(id=body_id, location="@sun", epochs=epoch)
+@app.get("/api/planetas")
+def get_planetas():
+    planetas = {}
+    for identificador, dados in PLANETAS.items():
+        planetas[identificador] = dados["nome"]
+    return planetas
+
+
+@app.get("/api/planeta/{identificador}")
+def get_orbit_data(identificador: str = "earth", epoch: float = 2451545.0):
+    identificador = identificador.lower()
+
+    if identificador not in PLANETAS:
+        raise HTTPException(status_code=404, detail="Planeta não configurado")
+
+    dados = PLANETAS[identificador]
+    naif_id = dados["naif_id"]
+
+    obj = Horizons(id=naif_id, location="@sun", epochs=epoch)
     vectors = obj.vectors()
+
     data = {
+        "idPlaneta": naif_id,
+        "nomePlaneta": dados["nome"],
+        "massaPlaneta": dados["massa"],
+        "raioPlaneta": dados["raio"],
         "x_AU": vectors["x"][0],
         "y_AU": vectors["y"][0],
         "z_AU": vectors["z"][0],
@@ -46,11 +52,37 @@ def get_orbit_data(body: str = "earth", epoch: float = 2451545.0):
     return data
 
 
-@app.get("/api/constants")
+@app.get("/api/constantes")
 def get_constants():
     return {
         "G": G.value,  # m³ kg⁻¹ s⁻²
-        "M_sun": M_sun.value,  # kg
-        "M_earth": M_earth.value,  # kg
         "AU": au.value,  # m
+        "M_sol": M_sun.value,
+        "R_sol": R_sun.value,
+    }
+
+
+@app.get("/api/estrelas")
+def get_estrelas():
+    estrelas = {}
+
+    for identificador, dados in ESTRELAS.items():
+        estrelas[identificador] = dados["nome"]
+
+    return estrelas
+
+
+@app.get("/api/estrela/{identificador}")
+def get_estrela(identificador: str):
+    identificador = identificador.lower()
+
+    if identificador not in ESTRELAS:
+        raise HTTPException(status_code=404, detail="Estrela não configurada")
+
+    dados = ESTRELAS[identificador]
+    return {
+        "nome": dados["nome"],
+        "massa": dados["massa"] * M_sun.value,
+        "raio": dados["raio"] * R_sun.value,
+        "cor": dados["cor"],
     }

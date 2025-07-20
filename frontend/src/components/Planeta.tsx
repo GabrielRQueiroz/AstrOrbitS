@@ -1,41 +1,67 @@
+import { Html } from "@react-three/drei"
 import { useFrame } from "@react-three/fiber"
-import { useMemo, useRef } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import toast from "react-hot-toast"
 import * as THREE from "three"
-import type { Constantes, OrbitaDados } from "../api/types/Api"
+import type { BuscarEstrela, BuscarPlaneta, Constantes } from "../api/types/Api"
 import { OrbitaMarcadores } from "./OrbitaMarcadores"
-import { OrbitaPlano } from "./OrbitaPlano"
+// import { OrbitaPlano } from "./OrbitaPlano"
 
-const TIME_SCALE = 5000000
-const TRAIL_LENGTH = 400
+const TRAIL_LENGTH = 200
 const DAY = 24 * 60 * 60
 
-export const Planeta = ({ orbitaDados, constantes }: { orbitaDados: OrbitaDados; constantes: Constantes }) => {
-   const { AU, G, M_sun } = constantes
+interface PlanetaProps {
+   dadosPlaneta: BuscarPlaneta
+   dadosEstrela: BuscarEstrela
+   escalaTemporal: number
+   constantes: Constantes
+}
 
-   const meshRef = useRef<THREE.Mesh>(null)
+export const Planeta: React.FC<PlanetaProps> = ({ dadosPlaneta, dadosEstrela, escalaTemporal, constantes }) => {
+   const [ativo, setAtivo] = useState<boolean>(true)
+   const planetaRef = useRef<THREE.Mesh>(null)
    const trailRef = useRef<THREE.Line>(null)
    const trailPoints = useRef<THREE.Vector3[]>([])
 
    const pos = useRef(
       new THREE.Vector3( // AU -> m
-         orbitaDados.x_AU * AU,
-         orbitaDados.y_AU * AU,
-         orbitaDados.z_AU * AU
+         dadosPlaneta.x_AU * constantes.AU,
+         dadosPlaneta.y_AU * constantes.AU,
+         dadosPlaneta.z_AU * constantes.AU
       )
    )
 
    const vel = useRef(
       new THREE.Vector3( // AU/dia -> m/s
-         orbitaDados.vx_AUperDay * AU / DAY,
-         orbitaDados.vy_AUperDay * AU / DAY,
-         orbitaDados.vz_AUperDay * AU / DAY
+         dadosPlaneta.vx_AUperDay * constantes.AU / DAY,
+         dadosPlaneta.vy_AUperDay * constantes.AU / DAY,
+         dadosPlaneta.vz_AUperDay * constantes.AU / DAY
       )
    )
+
+   useEffect(() => {
+      setAtivo(true)
+   }, [dadosPlaneta])
+
+   useEffect(() => {
+      pos.current = new THREE.Vector3(
+         dadosPlaneta.x_AU * constantes.AU,
+         dadosPlaneta.y_AU * constantes.AU,
+         dadosPlaneta.z_AU * constantes.AU
+      )
+      vel.current = new THREE.Vector3(
+         dadosPlaneta.vx_AUperDay * constantes.AU / DAY,
+         dadosPlaneta.vy_AUperDay * constantes.AU / DAY,
+         dadosPlaneta.vz_AUperDay * constantes.AU / DAY
+      )
+      trailPoints.current = []
+      trailRef.current?.geometry.setDrawRange(0, 0)
+   }, [dadosPlaneta, dadosEstrela])
 
    const rungeKutta = (pos: THREE.Vector3, vel: THREE.Vector3, dt: number) => {
       const acc = (r: THREE.Vector3) => {
          const rLen = r.length()
-         return r.clone().multiplyScalar(-G * M_sun / (rLen * rLen * rLen))
+         return r.clone().multiplyScalar(-constantes.G * dadosEstrela?.massa / (rLen * rLen * rLen))
       }
 
       const k1v = acc(pos).multiplyScalar(dt)
@@ -64,21 +90,23 @@ export const Planeta = ({ orbitaDados, constantes }: { orbitaDados: OrbitaDados;
    const trailGeometry = useMemo(() => new THREE.BufferGeometry(), [])
 
    useFrame((_, delta) => {
-      const dt = delta * TIME_SCALE
+      if (!ativo || !planetaRef.current) return
+
+      const dt = delta * escalaTemporal
 
       const { novaPos, novaVel } = rungeKutta(pos.current, vel.current, dt)
       pos.current = novaPos
       vel.current = novaVel
 
       // Atualiza posição do planeta
-      meshRef?.current?.position.set(
-         novaPos.x / AU,
-         novaPos.y / AU,
-         novaPos.z / AU
+      planetaRef?.current?.position.set(
+         novaPos.x / constantes.AU,
+         novaPos.y / constantes.AU,
+         novaPos.z / constantes.AU
       )
 
       // Adiciona ponto ao trail (em km)
-      trailPoints.current.push(novaPos.clone().divideScalar(AU))
+      trailPoints.current.push(novaPos.clone().divideScalar(constantes.AU))
       if (trailPoints.current.length > TRAIL_LENGTH) {
          trailPoints.current.shift()
       }
@@ -94,16 +122,34 @@ export const Planeta = ({ orbitaDados, constantes }: { orbitaDados: OrbitaDados;
       trailGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3))
       trailGeometry.setDrawRange(0, trailPoints.current.length)
       trailGeometry.computeBoundingSphere()
+
+      const distanciaAU = planetaRef?.current?.position.length() // Distância da origem (estrela)
+
+      // Verificação de colisão
+      if (distanciaAU <= dadosEstrela.raio / constantes.AU) {
+         toast("Colisão detectada! Planeta removido.", {
+            icon: "💥",
+            position: "bottom-right"
+         })
+         setAtivo(false)
+      }
    })
+
+   if (!ativo) return null
 
    return (
       <>
-         <OrbitaMarcadores pos={pos.current} vel={vel.current} constants={constantes} />
-         <OrbitaPlano pos={pos.current} vel={vel.current} />
+         <OrbitaMarcadores pos={pos.current.clone()} vel={vel.current.clone()} dadosEstrela={dadosEstrela} constantes={constantes} />
+         {/* <OrbitaPlano pos={pos.current} vel={vel.current} /> */}
 
-         <mesh ref={meshRef}>
-            <sphereGeometry args={[0.01, 32, 32]} />
-            <meshStandardMaterial color="blue" />
+         <mesh ref={planetaRef}>
+            <sphereGeometry args={[dadosPlaneta.raioPlaneta / constantes.AU, 32, 32]} />
+            <meshStandardMaterial color="white" />
+            <Html position={[0.1, 0.1, 0.1]}>
+               <div style={{ borderRadius: "0.5rem", color: "white", background: "rgba(0,0,0,0.6)", padding: "0.5rem" }}>
+                  {dadosPlaneta.nomePlaneta}
+               </div>
+            </Html>
          </mesh>
 
          {/* @ts-ignore */}

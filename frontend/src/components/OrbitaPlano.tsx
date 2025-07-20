@@ -7,7 +7,7 @@ interface OrbitaPlanoProps {
    divisions?: number
 }
 
-export const OrbitaPlano = ({ pos, vel, size = 200, divisions = 25 }: OrbitaPlanoProps) => {
+export const OrbitaPlano = ({ pos, vel, size = 800, divisions = 20 }: OrbitaPlanoProps) => {
    // Momento angular
    const h = new THREE.Vector3().crossVectors(pos, vel)
    const normal = h.clone().normalize()

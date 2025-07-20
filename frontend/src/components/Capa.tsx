@@ -3,7 +3,7 @@ import imgUrl from "../assets/AOS.png"
 import { useOrbita } from "../hooks/useOrbita"
 
 export const Capa = () => {
-   const { orbitaDados, constantes } = useOrbita()
+   const { dadosPlaneta, dadosEstrela, constantes } = useOrbita()
    const capaRef = useRef<HTMLDivElement>(null)
 
    useLayoutEffect(() => {
@@ -11,13 +11,13 @@ export const Capa = () => {
    }, [capaRef])
 
    useEffect(() => {
-      if (orbitaDados && constantes) {
+      if (dadosPlaneta && dadosEstrela && constantes) {
          if (capaRef.current) {
             capaRef.current.classList.remove("visible")
             capaRef.current.classList.add("fade-out")
          }
       }
-   }, [orbitaDados, constantes])
+   }, [dadosPlaneta, dadosEstrela, constantes])
 
    return (
       <>

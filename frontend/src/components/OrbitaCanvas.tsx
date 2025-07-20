@@ -2,28 +2,27 @@ import { OrbitControls, Stars } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import { Suspense } from 'react'
 import { useOrbita } from '../hooks/useOrbita'
-import { Planeta } from './Planeta'
 import { Estrela } from './Estrela'
+import { Planeta } from './Planeta'
 
 export const OrbitaCanvas = () => {
-   const { orbitaDados, constantes } = useOrbita()
+   const { dadosEstrela, dadosPlaneta, constantes, escalaTemporal } = useOrbita()
 
-   if (!orbitaDados || !constantes) {
+   if (!dadosEstrela || !dadosPlaneta || !constantes) {
       return <p>Carregando dados da simulação...</p>
    }
 
    return (
-      <Canvas className="canvas" dpr={Math.min(window.devicePixelRatio, 2)} camera={{ position: [3, 3, 3], fov: 45 }}>
+      <Canvas className="canvas" dpr={Math.min(window.devicePixelRatio, 2)} camera={{ position: [5, 5, 5], fov: 45 }}>
          <ambientLight intensity={0.5} />
          <pointLight position={[0, 0, 0]} intensity={2} />
 
          <Suspense fallback={null}>
-            <Estrela />
-            <Planeta orbitaDados={orbitaDados} constantes={constantes} />
+            <Estrela dadosEstrela={dadosEstrela} constantes={constantes} />
+            <Planeta key={`${dadosEstrela.nome}-${dadosPlaneta.nomePlaneta}`} escalaTemporal={escalaTemporal} dadosEstrela={dadosEstrela} dadosPlaneta={dadosPlaneta} constantes={constantes} />
+            <OrbitControls maxDistance={50 /* 50 AU */} minDistance={dadosEstrela.raio / constantes.AU * 2} />
          </Suspense>
-
-         <OrbitControls maxDistance={8} minDistance={1} />
-         <Stars count={2000} />
+         <Stars count={500} />
       </Canvas>
    )
 }
