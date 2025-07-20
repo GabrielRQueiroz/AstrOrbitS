@@ -1,8 +1,10 @@
+import { Toaster } from 'react-hot-toast';
 import { useErrorBoundary } from 'use-error-boundary';
 import './App.css';
 import { Capa } from './components/Capa';
 import { OrbitaCanvas } from './components/OrbitaCanvas';
 import { SelectorEstrela } from './components/Seletor/SeletorEstrela';
+import { SelectorFatorTemporal } from './components/Seletor/SeletorFatorTemporal';
 import { SelectorPlaneta } from './components/Seletor/SeletorPlaneta';
 import { OrbitaProvider } from './contexts/OrbitaContext';
 
@@ -21,8 +23,10 @@ function App() {
             <div className="selector-container">
               <SelectorPlaneta />
               <SelectorEstrela />
+              <SelectorFatorTemporal />
             </div>
             <OrbitaCanvas />
+            <Toaster />
           </main>
         </OrbitaProvider>
       </ErrorBoundary>

@@ -1,22 +1,25 @@
+import { Html } from "@react-three/drei"
 import { useFrame } from "@react-three/fiber"
-import { useEffect, useMemo, useRef } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import toast from "react-hot-toast"
 import * as THREE from "three"
 import type { BuscarEstrela, BuscarPlaneta, Constantes } from "../api/types/Api"
 import { OrbitaMarcadores } from "./OrbitaMarcadores"
 // import { OrbitaPlano } from "./OrbitaPlano"
 
-const TIME_SCALE = 5000000
 const TRAIL_LENGTH = 200
 const DAY = 24 * 60 * 60
 
 interface PlanetaProps {
    dadosPlaneta: BuscarPlaneta
    dadosEstrela: BuscarEstrela
+   escalaTemporal: number
    constantes: Constantes
 }
 
-export const Planeta = ({ dadosPlaneta, dadosEstrela, constantes }: PlanetaProps) => {
-   const meshRef = useRef<THREE.Mesh>(null)
+export const Planeta: React.FC<PlanetaProps> = ({ dadosPlaneta, dadosEstrela, escalaTemporal, constantes }) => {
+   const [ativo, setAtivo] = useState<boolean>(true)
+   const planetaRef = useRef<THREE.Mesh>(null)
    const trailRef = useRef<THREE.Line>(null)
    const trailPoints = useRef<THREE.Vector3[]>([])
 
@@ -37,6 +40,10 @@ export const Planeta = ({ dadosPlaneta, dadosEstrela, constantes }: PlanetaProps
    )
 
    useEffect(() => {
+      setAtivo(true)
+   }, [dadosPlaneta])
+
+   useEffect(() => {
       pos.current = new THREE.Vector3(
          dadosPlaneta.x_AU * constantes.AU,
          dadosPlaneta.y_AU * constantes.AU,
@@ -48,11 +55,6 @@ export const Planeta = ({ dadosPlaneta, dadosEstrela, constantes }: PlanetaProps
          dadosPlaneta.vz_AUperDay * constantes.AU / DAY
       )
       trailPoints.current = []
-      meshRef.current?.position.set(
-         pos.current.x / constantes.AU,
-         pos.current.y / constantes.AU,
-         pos.current.z / constantes.AU
-      )
       trailRef.current?.geometry.setDrawRange(0, 0)
    }, [dadosPlaneta, dadosEstrela])
 
@@ -88,14 +90,16 @@ export const Planeta = ({ dadosPlaneta, dadosEstrela, constantes }: PlanetaProps
    const trailGeometry = useMemo(() => new THREE.BufferGeometry(), [])
 
    useFrame((_, delta) => {
-      const dt = delta * TIME_SCALE
+      if (!ativo || !planetaRef.current) return
+
+      const dt = delta * escalaTemporal
 
       const { novaPos, novaVel } = rungeKutta(pos.current, vel.current, dt)
       pos.current = novaPos
       vel.current = novaVel
 
       // Atualiza posição do planeta
-      meshRef?.current?.position.set(
+      planetaRef?.current?.position.set(
          novaPos.x / constantes.AU,
          novaPos.y / constantes.AU,
          novaPos.z / constantes.AU
@@ -118,16 +122,34 @@ export const Planeta = ({ dadosPlaneta, dadosEstrela, constantes }: PlanetaProps
       trailGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3))
       trailGeometry.setDrawRange(0, trailPoints.current.length)
       trailGeometry.computeBoundingSphere()
+
+      const distanciaAU = planetaRef?.current?.position.length() // Distância da origem (estrela)
+
+      // Verificação de colisão
+      if (distanciaAU <= dadosEstrela.raio / constantes.AU) {
+         toast("Colisão detectada! Planeta removido.", {
+            icon: "💥",
+            position: "bottom-right"
+         })
+         setAtivo(false)
+      }
    })
+
+   if (!ativo) return null
 
    return (
       <>
-         <OrbitaMarcadores pos={pos.current} vel={vel.current} dadosEstrela={dadosEstrela} constantes={constantes} />
+         <OrbitaMarcadores pos={pos.current.clone()} vel={vel.current.clone()} dadosEstrela={dadosEstrela} constantes={constantes} />
          {/* <OrbitaPlano pos={pos.current} vel={vel.current} /> */}
 
-         <mesh ref={meshRef}>
-            <sphereGeometry args={[10 * dadosPlaneta.raioPlaneta / constantes.AU, 32, 32]} />
+         <mesh ref={planetaRef}>
+            <sphereGeometry args={[dadosPlaneta.raioPlaneta / constantes.AU, 32, 32]} />
             <meshStandardMaterial color="white" />
+            <Html position={[0.1, 0.1, 0.1]}>
+               <div style={{ borderRadius: "0.5rem", color: "white", background: "rgba(0,0,0,0.6)", padding: "0.5rem" }}>
+                  {dadosPlaneta.nomePlaneta}
+               </div>
+            </Html>
          </mesh>
 
          {/* @ts-ignore */}

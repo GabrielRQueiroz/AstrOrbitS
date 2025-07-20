@@ -1,6 +1,6 @@
 import type { BuscarEstrela, Constantes } from "../api/types/Api"
 
-export const Estrela = ({ dadosEstrela, constantes }: { dadosEstrela: BuscarEstrela, constantes: Constantes }) => {
+export const Estrela: React.FC<{ dadosEstrela: BuscarEstrela, constantes: Constantes }> = ({ dadosEstrela, constantes }) => {
    const { cor, raio } = dadosEstrela
 
    return (

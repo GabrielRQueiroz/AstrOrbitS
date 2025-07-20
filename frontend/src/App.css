@@ -48,6 +48,12 @@ h1 {
   margin-bottom: 1em;
 }
 
+.selector-fator-temporal {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 .visible {
   opacity: 1;
   transition: opacity 0.5s ease-in-out;

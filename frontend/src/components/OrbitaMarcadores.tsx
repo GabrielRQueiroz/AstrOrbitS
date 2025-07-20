@@ -29,26 +29,10 @@ export const OrbitaMarcadores = ({ pos, vel, dadosEstrela, constantes }: OrbitaM
       const rAfelio = a * (1 + e)
 
       return { e, a, rPeri, rAfelio, eVec }
-   }, [dadosEstrela, pos, vel, constantes])
-
-   // const periDir = eVec.clone().normalize()
-   // const posPeri = periDir.clone().multiplyScalar(rPeri / constantes.AU)
-   // const posAfelio = periDir.clone().multiplyScalar(-rAfelio / constantes.AU)
+   }, [pos, vel, dadosEstrela, constantes])
 
    return (
       <>
-         {/* Marcador do Periélio */}
-         {/* <mesh position={[posPeri.x, posPeri.y, posPeri.z]}>
-            <sphereGeometry args={[0.01, 16, 16]} />
-            <meshStandardMaterial color="red" />
-         </mesh> */}
-
-         {/* Marcador do Afélio */}
-         {/* <mesh position={[posAfelio.x, posAfelio.y, posAfelio.z]}>
-            <sphereGeometry args={[0.01, 16, 16]} />
-            <meshStandardMaterial color="blue" />
-         </mesh> */}
-
          {/* Exibição dos valores */}
          <Html position={[2, 1, 0]} style={{ pointerEvents: "none", color: "white" }}>
             <div style={{ background: "rgba(0,0,0,0.6)", padding: "8px", borderRadius: "8px", maxWidth: 220 }}>

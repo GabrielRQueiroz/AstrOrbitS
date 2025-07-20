@@ -11,7 +11,10 @@ export const OrbitaContext = createContext({
    estrela: 'sun' as Estrelas,
    listarPlanetas: () => Promise.resolve([] as { id: string, nome: string }[]),
    listarEstrelas: () => Promise.resolve([] as { id: string, nome: string }[]),
-   constantes: undefined as Constantes | undefined
+   constantes: undefined as Constantes | undefined,
+   acelerarSimulacao: () => { },
+   desacelerarSimulacao: () => { },
+   escalaTemporal: 5000000
 })
 
 export const OrbitaProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -20,6 +23,7 @@ export const OrbitaProvider: React.FC<{ children: ReactNode }> = ({ children }) 
    const [dadosPlaneta, setDadosPlaneta] = useState<BuscarPlaneta>()
    const [dadosEstrela, setDadosEstrela] = useState<BuscarEstrela>()
    const [constantes, setConstantes] = useState<Constantes>()
+   const [escalaTemporal, setEscalaTemporal] = useState<number>(5000000)
 
    // Busca dados planeta
    useEffect(() => {
@@ -62,8 +66,16 @@ export const OrbitaProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       return res
    }
 
+   const acelerarSimulacao = () => {
+      setEscalaTemporal(prev => prev * 2)
+   }
+
+   const desacelerarSimulacao = () => {
+      setEscalaTemporal(prev => Math.max(1, prev / 2))
+   }
+
    return (
-      <OrbitaContext.Provider value={{ dadosPlaneta, dadosEstrela, setPlaneta, planeta, setEstrela, estrela, listarPlanetas, listarEstrelas, constantes }}>
+      <OrbitaContext.Provider value={{ dadosPlaneta, dadosEstrela, setPlaneta, planeta, setEstrela, estrela, listarPlanetas, listarEstrelas, constantes, acelerarSimulacao, desacelerarSimulacao, escalaTemporal }}>
          {children}
       </OrbitaContext.Provider>
    )
