@@ -5,6 +5,7 @@ import toast from "react-hot-toast"
 import * as THREE from "three"
 import type { BuscarEstrela, BuscarPlaneta, Constantes } from "../api/types/Api"
 import { OrbitaMarcadores } from "./OrbitaMarcadores"
+import { ParticulasColisao } from "./ParticulasColisao"
 // import { OrbitaPlano } from "./OrbitaPlano"
 
 const TRAIL_LENGTH = 200
@@ -61,7 +62,7 @@ export const Planeta: React.FC<PlanetaProps> = ({ dadosPlaneta, dadosEstrela, es
    const rungeKutta = (pos: THREE.Vector3, vel: THREE.Vector3, dt: number) => {
       const acc = (r: THREE.Vector3) => {
          const rLen = r.length()
-         return r.clone().multiplyScalar(-constantes.G * dadosEstrela?.massa / (rLen * rLen * rLen))
+         return r.clone().multiplyScalar(-constantes.G * dadosEstrela?.massa / (rLen ** 3))
       }
 
       const k1v = acc(pos).multiplyScalar(dt)
@@ -129,13 +130,21 @@ export const Planeta: React.FC<PlanetaProps> = ({ dadosPlaneta, dadosEstrela, es
       if (distanciaAU <= dadosEstrela.raio / constantes.AU) {
          toast("Colisão detectada! Planeta removido.", {
             icon: "💥",
-            position: "bottom-right"
+            position: "bottom-right",
+            id: `colisao-${dadosPlaneta.idPlaneta}`,
          })
          setAtivo(false)
       }
    })
 
-   if (!ativo) return null
+   if (!ativo && planetaRef.current) {
+      return <ParticulasColisao posicao={planetaRef.current?.position.clone()} dadosEstrela={dadosEstrela} onFinish={() => {
+         setAtivo(false)
+         trailPoints.current = []
+         trailRef.current?.geometry.setDrawRange(0, 0)
+      }} />
+   }
+   else if (!ativo) return null
 
    return (
       <>
