@@ -1,4 +1,5 @@
 from astropy.constants import G, M_sun, R_sun, au
+from astropy.time import Time
 from astroquery.jplhorizons import Horizons
 from constants import ESTRELAS, PLANETAS
 from fastapi import FastAPI, HTTPException
@@ -25,7 +26,7 @@ def get_planetas():
 
 
 @app.get("/api/planeta/{identificador}")
-def get_orbit_data(identificador: str = "earth", epoch: float = 2451545.0):
+def get_orbit_data(identificador: str = "earth", epoch = Time.now()):
     identificador = identificador.lower()
 
     if identificador not in PLANETAS:
@@ -34,7 +35,7 @@ def get_orbit_data(identificador: str = "earth", epoch: float = 2451545.0):
     dados = PLANETAS[identificador]
     naif_id = dados["naif_id"]
 
-    obj = Horizons(id=naif_id, location="@sun", epochs=epoch)
+    obj = Horizons(id=naif_id, location="@sun", epochs=epoch.jd)
     vectors = obj.vectors()
 
     data = {
