@@ -14,7 +14,7 @@ export const SelectorPlaneta = () => {
 
    return (
       <div className="selector-planeta">
-         <h2>Selecione um Planeta</h2>
+         <h2>Selecione um planeta</h2>
          <select onChange={(e) => setPlaneta(e.target.value as Planetas)} value={planeta}>
             {listaPlanetas.map((planeta) => (
                <option key={planeta.id} value={planeta.id}>

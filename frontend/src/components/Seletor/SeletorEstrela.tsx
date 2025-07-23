@@ -14,7 +14,7 @@ export const SelectorEstrela = () => {
    
    return (
       <div className="selector-estrela">
-         <h2>Selecione um Estrela</h2>
+         <h2>Selecione uma estrela</h2>
          <select  onChange={(e) => setEstrela(e.target.value as Estrelas)} value={estrela}>
             {listaEstrelas.map((estrela) => (
                <option key={estrela.id} value={estrela.id}>
