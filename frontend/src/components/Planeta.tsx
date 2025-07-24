@@ -136,7 +136,7 @@ export const Planeta: React.FC<PlanetaProps> = ({ dadosPlaneta, dadosEstrela, es
    const trailGeometry = useMemo(() => new THREE.BufferGeometry(), [])
 
    useFrame((_, delta) => {
-      if (!ativo || !planetaRef.current || delta > 0.01) return
+      if (!ativo || !planetaRef.current || delta > 0.02) return
 
       const h = delta * escalaTemporal
 

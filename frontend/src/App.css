@@ -13,7 +13,6 @@
   height: 100vh;
   top: 0;
   left: 0;
-  pointer-events: none;
   background-image: url('AOS.png');
   background-color: #001e45;
   background-size: 50%;
@@ -23,6 +22,7 @@
 
 .cover::after {
   content: 'Carregando...';
+  pointer-events: none;
   position: absolute;
   top: 90%;
   left: 50%;
