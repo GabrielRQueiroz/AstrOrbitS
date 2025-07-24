@@ -20,7 +20,7 @@ export const OrbitaCanvas = () => {
          <Suspense fallback={null}>
             <Estrela dadosEstrela={dadosEstrela} constantes={constantes} />
             <Planeta key={`${dadosEstrela.nome}-${dadosPlaneta.nomePlaneta}`} escalaTemporal={escalaTemporal} dadosEstrela={dadosEstrela} dadosPlaneta={dadosPlaneta} constantes={constantes} />
-            <OrbitControls maxDistance={50 /* 50 AU */} minDistance={dadosEstrela.raio / constantes.AU * 2} />
+            <OrbitControls enablePan={false} maxDistance={50 /* 50 AU */} minDistance={dadosEstrela.raio / constantes.AU * 2} />
          </Suspense>
          <Stars count={500} />
       </Canvas>

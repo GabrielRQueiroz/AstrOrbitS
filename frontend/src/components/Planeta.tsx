@@ -59,23 +59,23 @@ export const Planeta: React.FC<PlanetaProps> = ({ dadosPlaneta, dadosEstrela, es
       trailRef.current?.geometry.setDrawRange(0, 0)
    }, [dadosPlaneta, dadosEstrela])
 
-   const rungeKutta = (pos: THREE.Vector3, vel: THREE.Vector3, dt: number) => {
+   const rungeKutta = (pos: THREE.Vector3, vel: THREE.Vector3, h: number) => {
       const acc = (r: THREE.Vector3) => {
          const rLen = r.length()
          return r.clone().multiplyScalar(-constantes.G * dadosEstrela?.massa / (rLen ** 3))
       }
 
-      const k1v = acc(pos).multiplyScalar(dt)
-      const k1x = vel.clone().multiplyScalar(dt)
+      const k1v = acc(pos).multiplyScalar(h)
+      const k1x = vel.clone().multiplyScalar(h)
 
-      const k2v = acc(pos.clone().add(k1x.clone().multiplyScalar(0.5))).multiplyScalar(dt)
-      const k2x = vel.clone().add(k1v.clone().multiplyScalar(0.5)).multiplyScalar(dt)
+      const k2v = acc(pos.clone().add(k1x.clone().multiplyScalar(0.5))).multiplyScalar(h)
+      const k2x = vel.clone().add(k1v.clone().multiplyScalar(0.5)).multiplyScalar(h)
 
-      const k3v = acc(pos.clone().add(k2x.clone().multiplyScalar(0.5))).multiplyScalar(dt)
-      const k3x = vel.clone().add(k2v.clone().multiplyScalar(0.5)).multiplyScalar(dt)
+      const k3v = acc(pos.clone().add(k2x.clone().multiplyScalar(0.5))).multiplyScalar(h)
+      const k3x = vel.clone().add(k2v.clone().multiplyScalar(0.5)).multiplyScalar(h)
 
-      const k4v = acc(pos.clone().add(k3x)).multiplyScalar(dt)
-      const k4x = vel.clone().add(k3v).multiplyScalar(dt)
+      const k4v = acc(pos.clone().add(k3x)).multiplyScalar(h)
+      const k4x = vel.clone().add(k3v).multiplyScalar(h)
 
       const novaVel = vel.clone().add(
          k1v.clone().add(k2v.clone().multiplyScalar(2)).add(k3v.clone().multiplyScalar(2)).add(k4v).multiplyScalar(1 / 6)
@@ -91,11 +91,17 @@ export const Planeta: React.FC<PlanetaProps> = ({ dadosPlaneta, dadosEstrela, es
    const trailGeometry = useMemo(() => new THREE.BufferGeometry(), [])
 
    useFrame((_, delta) => {
-      if (!ativo || !planetaRef.current) return
+      if (!ativo || !planetaRef.current || delta > 0.01) return
 
-      const dt = delta * escalaTemporal
+      const h = delta * escalaTemporal
 
-      const { novaPos, novaVel } = rungeKutta(pos.current, vel.current, dt)
+      const { novaPos, novaVel } = rungeKutta(pos.current, vel.current, h)
+      console.table({
+         delta: delta.toFixed(2),
+         posicao: novaPos,
+         velocidade: novaVel
+      })
+
       pos.current = novaPos
       vel.current = novaVel
 
@@ -106,7 +112,7 @@ export const Planeta: React.FC<PlanetaProps> = ({ dadosPlaneta, dadosEstrela, es
          novaPos.z / constantes.AU
       )
 
-      // Adiciona ponto ao trail (em km)
+      // Adiciona ponto ao trail
       trailPoints.current.push(novaPos.clone().divideScalar(constantes.AU))
       if (trailPoints.current.length > TRAIL_LENGTH) {
          trailPoints.current.shift()
@@ -154,7 +160,7 @@ export const Planeta: React.FC<PlanetaProps> = ({ dadosPlaneta, dadosEstrela, es
          <mesh ref={planetaRef}>
             <sphereGeometry args={[dadosPlaneta.raioPlaneta / constantes.AU, 32, 32]} />
             <meshStandardMaterial color="white" />
-            <Html position={[0.1, 0.1, 0.1]}>
+            <Html style={{pointerEvents: "none"}} position={[0.1, 0.1, 0.1]}>
                <div style={{ borderRadius: "0.5rem", color: "white", background: "rgba(0,0,0,0.6)", padding: "0.5rem" }}>
                   {dadosPlaneta.nomePlaneta}
                </div>

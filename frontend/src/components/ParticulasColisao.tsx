@@ -83,7 +83,7 @@ export const ParticulasColisao: React.FC<ParticulasColisaoProps> = ({ posicao, c
             />
          </points>
 
-         <Html position={[posicao.x, posicao.y, posicao.z]}>
+         <Html style={{ pointerEvents: "none" }} position={[posicao.x, posicao.y, posicao.z]}>
             <div
                ref={textoRef}
                style={{

@@ -19,7 +19,7 @@ export const SelectorFatorTemporal = () => {
             Acelerar
          </button>
          <button
-            disabled={escalaTemporal / 5000000 <= 1}
+            disabled={escalaTemporal / 5000000 <= 1/4}
             onClick={handleDesacelerar}>Desacelerar</button>
       </div>
    );
