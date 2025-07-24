@@ -18,11 +18,23 @@ interface PlanetaProps {
    constantes: Constantes
 }
 
+type LogTable = {
+   posX: number,
+   posY: number,
+   posZ: number,
+   posMod: number,
+   velX: number,
+   velY: number,
+   velZ: number,
+   velMod: number
+}
+
 export const Planeta: React.FC<PlanetaProps> = ({ dadosPlaneta, dadosEstrela, escalaTemporal, constantes }) => {
    const [ativo, setAtivo] = useState<boolean>(true)
    const planetaRef = useRef<THREE.Mesh>(null)
    const trailRef = useRef<THREE.Line>(null)
    const trailPoints = useRef<THREE.Vector3[]>([])
+   const logTable = useRef<LogTable[]>([])
 
    const pos = useRef(
       new THREE.Vector3( // AU -> m
@@ -57,6 +69,7 @@ export const Planeta: React.FC<PlanetaProps> = ({ dadosPlaneta, dadosEstrela, es
       )
       trailPoints.current = []
       trailRef.current?.geometry.setDrawRange(0, 0)
+      logTable.current = [];
    }, [dadosPlaneta, dadosEstrela])
 
    const rungeKutta = (pos: THREE.Vector3, vel: THREE.Vector3, h: number) => {
@@ -88,6 +101,38 @@ export const Planeta: React.FC<PlanetaProps> = ({ dadosPlaneta, dadosEstrela, es
       return { novaPos, novaVel }
    }
 
+   const gravarLogPosicaoVelocidade = (pos: THREE.Vector3, vel: THREE.Vector3, limit = 25): void => {
+      if (logTable.current.length <= 0) {
+         console.log("Gravando cálculo da órbita do planeta: ", dadosPlaneta.nomePlaneta);
+         logTable.current = [];
+      }
+      if (logTable.current.length < limit) {
+         logTable.current.push({ // AU e km/s
+            posX: pos.x / constantes.AU,
+            posY: pos.y / constantes.AU,
+            posZ: pos.z / constantes.AU,
+            posMod: pos.length() / constantes.AU,
+            velX: vel.x / 1000,
+            velY: vel.y / 1000,
+            velZ: vel.z / 1000,
+            velMod: vel.length() / 1000
+         });
+      }
+      if (logTable.current.length === limit) {
+         console.table(logTable.current);
+         logTable.current.push({
+            posX: pos.x / constantes.AU,
+            posY: pos.y / constantes.AU,
+            posZ: pos.z / constantes.AU,
+            posMod: pos.length() / constantes.AU,
+            velX: vel.x / 1000,
+            velY: vel.y / 1000,
+            velZ: vel.z / 1000,
+            velMod: vel.length() / 1000
+         });
+      }
+   }
+
    const trailGeometry = useMemo(() => new THREE.BufferGeometry(), [])
 
    useFrame((_, delta) => {
@@ -96,11 +141,8 @@ export const Planeta: React.FC<PlanetaProps> = ({ dadosPlaneta, dadosEstrela, es
       const h = delta * escalaTemporal
 
       const { novaPos, novaVel } = rungeKutta(pos.current, vel.current, h)
-      console.table({
-         delta: delta.toFixed(2),
-         posicao: novaPos,
-         velocidade: novaVel
-      })
+
+      gravarLogPosicaoVelocidade(novaPos, novaVel)
 
       pos.current = novaPos
       vel.current = novaVel
@@ -160,7 +202,7 @@ export const Planeta: React.FC<PlanetaProps> = ({ dadosPlaneta, dadosEstrela, es
          <mesh ref={planetaRef}>
             <sphereGeometry args={[dadosPlaneta.raioPlaneta / constantes.AU, 32, 32]} />
             <meshStandardMaterial color="white" />
-            <Html style={{pointerEvents: "none"}} position={[0.1, 0.1, 0.1]}>
+            <Html style={{ pointerEvents: "none" }} position={[0.1, 0.1, 0.1]}>
                <div style={{ borderRadius: "0.5rem", color: "white", background: "rgba(0,0,0,0.6)", padding: "0.5rem" }}>
                   {dadosPlaneta.nomePlaneta}
                </div>
