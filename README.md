@@ -39,17 +39,17 @@ Esse simulador permite visualizar as órbitas de planetas no sistema solar utili
     ```bash
     cd backend
     ```
-2. Instale as dependências:
-    ```bash
-    pip install -r requirements.txt
-    ```
-3. (Opcional) Crie um ambiente virtual para isolar as dependências:
+2. (Opcional) Crie um ambiente virtual para isolar as dependências:
     ```bash
     python -m venv .venv
     ```
     Se estiver usando um ambiente virtual, ative-o com:
     ```bash
     source .venv/bin/activate
+    ```
+3. Instale as dependências:
+    ```bash
+    pip install -r requirements.txt
     ```
 4. Inicie o servidor:
     ```bash
