@@ -101,7 +101,7 @@ export const Planeta: React.FC<PlanetaProps> = ({ dadosPlaneta, dadosEstrela, es
       return { novaPos, novaVel }
    }
 
-   const gravarLogPosicaoVelocidade = (pos: THREE.Vector3, vel: THREE.Vector3, limit = 25): void => {
+   const gravarLogPosicaoVelocidade = (pos: THREE.Vector3, vel: THREE.Vector3, limit = 2000): void => {
       if (logTable.current.length <= 0) {
          console.log("Gravando cálculo da órbita do planeta: ", dadosPlaneta.nomePlaneta);
          logTable.current = [];
@@ -120,6 +120,14 @@ export const Planeta: React.FC<PlanetaProps> = ({ dadosPlaneta, dadosEstrela, es
       }
       if (logTable.current.length === limit) {
          console.table(logTable.current);
+         console.log("r_x média:", logTable.current.reduce((acc, cur) => acc + cur.posX, 0) / logTable.current.length);
+         console.log("r_y média:", logTable.current.reduce((acc, cur) => acc + cur.posY, 0) / logTable.current.length);
+         console.log("r_z média:", logTable.current.reduce((acc, cur) => acc + cur.posZ, 0) / logTable.current.length);
+         console.log("v_x média:", logTable.current.reduce((acc, cur) => acc + cur.velX, 0) / logTable.current.length);
+         console.log("v_y média:", logTable.current.reduce((acc, cur) => acc + cur.velY, 0) / logTable.current.length);
+         console.log("v_z média:", logTable.current.reduce((acc, cur) => acc + cur.velZ, 0) / logTable.current.length);
+         console.log("r_média:", logTable.current.reduce((acc, cur) => acc + cur.posMod, 0) / logTable.current.length);
+         console.log("v_média:", logTable.current.reduce((acc, cur) => acc + cur.velMod, 0) / logTable.current.length);
          logTable.current.push({
             posX: pos.x / constantes.AU,
             posY: pos.y / constantes.AU,
